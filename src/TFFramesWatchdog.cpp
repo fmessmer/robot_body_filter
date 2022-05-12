@@ -66,10 +66,10 @@ void TFFramesWatchdog::searchForReachableFrames()
     std::string err;
     if (this->tfBuffer->canTransform(this->robotFrame, frame, time, this->unreachableTfLookupTimeout, &err)) {
       this->markReachable(frame);
-      ROS_DEBUG("TFFramesWatchdog (%s): Frame %s became reachable at %i.%i",
+      ROS_INFO("TFFramesWatchdog (%s): Frame %s became reachable at %i.%i",
           this->robotFrame.c_str(), frame.c_str(), time.sec, time.nsec);
     } else {
-      ROS_WARN_DELAYED_THROTTLE(3,
+      ROS_WARN(
           "TFFramesWatchdog (%s): Frame %s is not reachable! Cause: %s",
           this->robotFrame.c_str(), frame.c_str(), err.c_str());
     }
@@ -133,7 +133,7 @@ optional<geometry_msgs::TransformStamped> TFFramesWatchdog::lookupTransform(
 
   if (!this->tfBuffer->canTransform(this->robotFrame, frame, time,
       remainingTime(time, timeout), errstr)) {
-    ROS_WARN_THROTTLE(3,
+    ROS_WARN(
         "TFFramesWatchdog (%s): Frame %s became unreachable. Cause: %s",
         this->robotFrame.c_str(), frame.c_str(), errstr->c_str());
 
@@ -147,7 +147,7 @@ optional<geometry_msgs::TransformStamped> TFFramesWatchdog::lookupTransform(
     return this->tfBuffer->lookupTransform(
         this->robotFrame, frame, time, remainingTime(time, timeout));
   } catch (tf2::LookupException&) {
-    ROS_WARN_DELAYED_THROTTLE(3,
+    ROS_WARN(
         "TFFramesWatchdog (%s): Frame %s is not reachable. Cause: %s",
         this->robotFrame.c_str(), frame.c_str(), errstr->c_str());
 
