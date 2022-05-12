@@ -517,7 +517,7 @@ bool RobotBodyFilter<T>::computeMask(
     }
   }
 
-  ROS_DEBUG("RobotBodyFilter: Mask computed in %.5f secs.", double(clock()-stopwatchOverall) / CLOCKS_PER_SEC);
+  ROS_INFO("RobotBodyFilter: Mask computed in %.5f secs.", double(clock()-stopwatchOverall) / CLOCKS_PER_SEC);
 
   this->publishDebugPointClouds(projectedPointCloud, pointMask);
   this->publishDebugMarkers(scanTime);
@@ -526,7 +526,7 @@ bool RobotBodyFilter<T>::computeMask(
   this->computeAndPublishOrientedBoundingBox(projectedPointCloud);
   this->computeAndPublishLocalBoundingBox(projectedPointCloud);
 
-  ROS_DEBUG("RobotBodyFilter: Filtering run time is %.5f secs.", double(clock()-stopwatchOverall) / CLOCKS_PER_SEC);
+  ROS_INFO("RobotBodyFilter: Filtering run time is %.5f secs.", double(clock()-stopwatchOverall) / CLOCKS_PER_SEC);
   return true;
 }
 
@@ -534,13 +534,13 @@ bool RobotBodyFilterLaserScan::update(const LaserScan &inputScan, LaserScan &fil
   const auto& scanTime = inputScan.header.stamp;
 
   if (!this->configured_) {
-    ROS_DEBUG("RobotBodyFilter: Ignore scan from time %u.%u - filter not yet initialized.",
+    ROS_INFO("RobotBodyFilter: Ignore scan from time %u.%u - filter not yet initialized.",
               scanTime.sec, scanTime.nsec);
     return false;
   }
 
   if ((scanTime < timeConfigured) && ((scanTime + tfBufferLength) >= timeConfigured)) {
-    ROS_DEBUG("RobotBodyFilter: Ignore scan from time %u.%u - filter not yet initialized.",
+    ROS_INFO("RobotBodyFilter: Ignore scan from time %u.%u - filter not yet initialized.",
               scanTime.sec, scanTime.nsec);
     return false;
   }
@@ -566,7 +566,7 @@ bool RobotBodyFilterLaserScan::update(const LaserScan &inputScan, LaserScan &fil
 
   if (!this->tfFramesWatchdog->isReachable(scanFrame))
   {
-    ROS_DEBUG("RobotBodyFilter: Throwing away scan since sensor frame is unreachable.");
+    ROS_INFO("RobotBodyFilter: Throwing away scan since sensor frame is unreachable.");
     // if this->sensorFrame is empty, it can happen that we're not actually monitoring the sensor
     // frame, so start monitoring it
     if (!this->tfFramesWatchdog->isMonitored(scanFrame))
@@ -576,7 +576,7 @@ bool RobotBodyFilterLaserScan::update(const LaserScan &inputScan, LaserScan &fil
 
   if (this->requireAllFramesReachable && !this->tfFramesWatchdog->areAllFramesReachable())
   {
-    ROS_DEBUG("RobotBodyFilter: Throwing away scan since not all frames are reachable.");
+    ROS_INFO("RobotBodyFilter: Throwing away scan since not all frames are reachable.");
     return false;
   }
 
@@ -604,11 +604,11 @@ bool RobotBodyFilterLaserScan::update(const LaserScan &inputScan, LaserScan &fil
                 remainingTime(afterScanTime, this->reachableTransformTimeout), &err)) {
         if (err.find("future") != string::npos) {
           const auto delay = ros::Time::now() - scanTime;
-          ROS_ERROR_THROTTLE(3, "RobotBodyFilter: Cannot transform laser scan to "
+          ROS_ERROR("RobotBodyFilter: Cannot transform laser scan to "
             "fixed frame. The scan is too much delayed (%s s). TF error: %s",
             to_string(delay).c_str(), err.c_str());
         } else {
-          ROS_ERROR_DELAYED_THROTTLE(3, "RobotBodyFilter: Cannot transform laser scan to "
+          ROS_ERROR("RobotBodyFilter: Cannot transform laser scan to "
             "fixed frame. Something's wrong with TFs: %s", err.c_str());
         }
         return false;
@@ -655,7 +655,7 @@ bool RobotBodyFilterLaserScan::update(const LaserScan &inputScan, LaserScan &fil
         if (!this->tfBuffer->canTransform(this->filteringFrame,
             tmpPointCloud.header.frame_id, scanTime,
             remainingTime(scanTime, this->reachableTransformTimeout), &err)) {
-          ROS_ERROR_DELAYED_THROTTLE(3, "RobotBodyFilter: Cannot transform "
+          ROS_ERROR("RobotBodyFilter: Cannot transform "
               "laser scan to filtering frame. Something's wrong with TFs: %s",
               err.c_str());
           return false;
@@ -666,7 +666,7 @@ bool RobotBodyFilterLaserScan::update(const LaserScan &inputScan, LaserScan &fil
       }
     }
 
-    ROS_DEBUG("RobotBodyFilter: Scan transformation run time is %.5f secs.", double(clock()-stopwatchOverall) / CLOCKS_PER_SEC);
+    ROS_INFO("RobotBodyFilter: Scan transformation run time is %.5f secs.", double(clock()-stopwatchOverall) / CLOCKS_PER_SEC);
 
     vector<RayCastingShapeMask::MaskValue> pointMask;
     const auto success = this->computeMask(projectedPointCloud, pointMask, scanFrame);
@@ -711,13 +711,13 @@ bool RobotBodyFilterPointCloud2::update(const sensor_msgs::PointCloud2 &inputClo
   const auto& scanTime = inputCloud.header.stamp;
 
   if (!this->configured_) {
-    ROS_DEBUG("RobotBodyFilter: Ignore cloud from time %u.%u - filter not yet initialized.",
+    ROS_INFO("RobotBodyFilter: Ignore cloud from time %u.%u - filter not yet initialized.",
               scanTime.sec, scanTime.nsec);
     return false;
   }
 
   if ((scanTime < this->timeConfigured) && ((scanTime + this->tfBufferLength) >= this->timeConfigured)) {
-    ROS_DEBUG("RobotBodyFilter: Ignore cloud from time %u.%u - filter not yet initialized.",
+    ROS_INFO("RobotBodyFilter: Ignore cloud from time %u.%u - filter not yet initialized.",
               scanTime.sec, scanTime.nsec);
     return false;
   }
@@ -735,7 +735,7 @@ bool RobotBodyFilterPointCloud2::update(const sensor_msgs::PointCloud2 &inputClo
 
   if (!this->tfFramesWatchdog->isReachable(inputCloudFrame))
   {
-    ROS_DEBUG("RobotBodyFilter: Throwing away scan since sensor frame is unreachable.");
+    ROS_INFO("RobotBodyFilter: Throwing away scan since sensor frame is unreachable.");
     // if this->sensorFrame is empty, it can happen that we're not actually monitoring the cloud
     // frame, so start monitoring it
     if (!this->tfFramesWatchdog->isMonitored(inputCloudFrame))
@@ -745,7 +745,7 @@ bool RobotBodyFilterPointCloud2::update(const sensor_msgs::PointCloud2 &inputClo
 
   if (this->requireAllFramesReachable && !this->tfFramesWatchdog->areAllFramesReachable())
   {
-    ROS_DEBUG("RobotBodyFilter: Throwing away scan since not all frames are reachable.");
+    ROS_INFO("RobotBodyFilter: Throwing away scan since not all frames are reachable.");
     return false;
   }
 
@@ -800,7 +800,7 @@ bool RobotBodyFilterPointCloud2::update(const sensor_msgs::PointCloud2 &inputClo
     if (!this->tfBuffer->canTransform(this->filteringFrame,
         inputCloud.header.frame_id, scanTime,
         remainingTime(scanTime, this->reachableTransformTimeout), &err)) {
-      ROS_ERROR_DELAYED_THROTTLE(3, "RobotBodyFilter: Cannot transform "
+      ROS_ERROR("RobotBodyFilter: Cannot transform "
           "point cloud to filtering frame. Something's wrong with TFs: %s",
           err.c_str());
       return false;
@@ -838,7 +838,7 @@ bool RobotBodyFilterPointCloud2::update(const sensor_msgs::PointCloud2 &inputClo
     if (!this->tfBuffer->canTransform(this->outputFrame,
         tmpCloud.header.frame_id, scanTime,
         remainingTime(scanTime, this->reachableTransformTimeout), &err)) {
-      ROS_ERROR_DELAYED_THROTTLE(3, "RobotBodyFilter: Cannot transform "
+      ROS_ERROR("RobotBodyFilter: Cannot transform "
           "point cloud to output frame. Something's wrong with TFs: %s",
           err.c_str());
       return false;
@@ -856,7 +856,7 @@ bool RobotBodyFilter<T>::getShapeTransform(point_containment_filter::ShapeHandle
 
   // check if the given shapeHandle has been registered to a link during addRobotMaskFromUrdf call.
   if (this->shapesToLinks.find(shapeHandle) == this->shapesToLinks.end()) {
-    ROS_ERROR_STREAM_THROTTLE(3, "RobotBodyFilter: Invalid shape handle: " << to_string(shapeHandle));
+    ROS_ERROR_STREAM("RobotBodyFilter: Invalid shape handle: " << to_string(shapeHandle));
     return false;
   }
 
@@ -1568,13 +1568,13 @@ void RobotBodyFilter<T>::computeAndPublishLocalBoundingBox(
                                       scanTime,
                                       remainingTime(scanTime, this->reachableTransformTimeout),
                                       &err)) {
-      ROS_ERROR_DELAYED_THROTTLE(3.0, "Cannot get transform %s->%s. Error is %s.",
+      ROS_ERROR("Cannot get transform %s->%s. Error is %s.",
                          this->filteringFrame.c_str(),
                          this->localBoundingBoxFrame.c_str(), err.c_str());
       return;
     }
   } catch (tf2::TransformException& e) {
-    ROS_ERROR_DELAYED_THROTTLE(3.0, "Cannot get transform %s->%s. Error is %s.",
+    ROS_ERROR("Cannot get transform %s->%s. Error is %s.",
                        this->filteringFrame.c_str(),
                        this->localBoundingBoxFrame.c_str(), e.what());
     return;
