@@ -11,6 +11,8 @@
 #include <robot_body_filter/RayCastingShapeMask.h>
 
 #include <geometric_shapes/body_operations.h>
+#include <geometry_msgs/Transform.h>
+#include <eigen_conversions/eigen_msg.h>
 
 #include <ros/console.h>
 
@@ -137,8 +139,27 @@ void RayCastingShapeMask::updateBodyPosesNoLock()
 
     if (this->transform_callback_(containsHandle, transform))
     {
+      std::string name;
+      if (this->data->shapeNames.find(containsHandle) != this->data->shapeNames.end())
+        name = this->data->shapeNames.at(containsHandle);
+
+      if (name.empty())
+        ROS_WARN_STREAM_NAMED("shape_mask",
+            "transform_callback_ name.empty" << containsBody->getType()
+            << " with handle " << containsHandle);
+      else
+        ROS_WARN_STREAM_NAMED("shape_mask",
+            "transform_callback_ " << name << " (" << containsBody->getType() << ")");
+
+      geometry_msgs::Transform transform_msg;
+      tf::transformEigenToMsg(transform, transform_msg);
+      ROS_WARN_STREAM_NAMED("shape_mask",
+            "transform_callback_ transform" << transform_msg);
+
       containsBody->setPose(transform);
+      ROS_WARN_STREAM_NAMED("shape_mask", "after setPose");
       validBodies.insert(containsBody);
+      ROS_WARN_STREAM_NAMED("shape_mask", "after insert");
 
       if (containsBody != shadowBody)
       {
@@ -179,6 +200,7 @@ void RayCastingShapeMask::updateBodyPosesNoLock()
       }
     }
   }
+  ROS_WARN_STREAM_NAMED("shape_mask", "after multiBodies for-loop");
 
   // TODO: prevent frequent reallocations of memory
   this->bspheres_.resize(this->bodies_.size());
@@ -210,6 +232,7 @@ void RayCastingShapeMask::updateBodyPosesNoLock()
 
     bodyIdx++;
   }
+  ROS_WARN_STREAM_NAMED("shape_mask", "after bodies for-loop");
   this->bspheres_.resize(validBodyIdx);
   this->bspheresForContainsTest.resize(validContainsTestIdx);
   this->bspheresBodyIndices.resize(validBodyIdx);

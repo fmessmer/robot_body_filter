@@ -11,7 +11,7 @@ else()
   add_compile_options(-DROBOT_BODY_FILTER_USE_CXX_OPTIONAL=0)
 endif()
 
-set(THIS_PACKAGE_DEPS dynamic_reconfigure filters geometric_shapes laser_geometry moveit_core moveit_ros_perception roscpp sensor_msgs tf2 tf2_ros urdf visualization_msgs)
+set(THIS_PACKAGE_DEPS dynamic_reconfigure eigen_conversions filters geometric_shapes laser_geometry moveit_core moveit_ros_perception roscpp sensor_msgs tf2 tf2_ros urdf visualization_msgs)
 set(MESSAGE_DEPS geometry_msgs std_msgs)
 
 find_package(catkin REQUIRED COMPONENTS ${THIS_PACKAGE_DEPS} ${MESSAGE_DEPS} message_generation pcl_conversions tf2_eigen tf2_sensor_msgs)
